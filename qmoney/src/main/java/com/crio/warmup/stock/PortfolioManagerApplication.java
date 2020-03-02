@@ -2,59 +2,29 @@
 package com.crio.warmup.stock;
 
 import com.crio.warmup.stock.dto.AnnualizedReturn;
-import com.crio.warmup.stock.dto.Candle;
 import com.crio.warmup.stock.dto.PortfolioTrade;
 import com.crio.warmup.stock.dto.TiingoCandle;
-import com.crio.warmup.stock.dto.TotalReturnsDto;
 import com.crio.warmup.stock.log.UncaughtExceptionHandler;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 
-//import net.bytebuddy.implementation.bytecode.Size;
-
-
-//import java.nio.file.Paths;
-
-//import java.util.Arrays;
-
-
-
-//import java.util.logging.Logger;
-
 import java.io.File;
 import java.io.IOException;
 import java.net.URI;
-
-import com.crio.warmup.stock.dto.AnnualizedReturn;
-import com.crio.warmup.stock.dto.PortfolioTrade;
-import com.crio.warmup.stock.dto.TotalReturnsDto;
-import com.crio.warmup.stock.log.UncaughtExceptionHandler;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
-import java.io.File;
-import java.io.IOException;
 import java.net.URISyntaxException;
-import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.time.LocalDate;
-import java.time.Month;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
-import java.util.Comparator;
 import java.util.List;
 import java.util.UUID;
-import java.util.logging.Level;
 import java.util.logging.Logger;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
-//import java.util.List;
-//import java.util.UUID;
+
 import org.apache.logging.log4j.ThreadContext;
 import org.springframework.web.client.RestTemplate;
-import java.time.temporal.ChronoUnit;
+
 //import org.apache.logging.log4j.ThreadContext;
 
 public class PortfolioManagerApplication {
@@ -241,12 +211,11 @@ public class PortfolioManagerApplication {
       //s.set(i,stockname.toUpperCase());
     }
     List<AnnualizedReturn> ar = new ArrayList<AnnualizedReturn>();
-    for( int i = 0; i < sellValue.size(); i++)
-    {
+    for (int i = 0; i < sellValue.size(); i++) {
       ar.add(calculateAnnualizedReturns(LocalDate.parse(args[1]), 
             pt[i], buyValue.get(i), sellValue.get(i)));
     }
-     return ar;
+    return ar;
   }
 
   // TODO: CRIO_TASK_MODULE_CALCULATIONS
@@ -262,36 +231,17 @@ public class PortfolioManagerApplication {
 
   public static AnnualizedReturn calculateAnnualizedReturns(LocalDate endDate,
       PortfolioTrade trade, Double buyPrice, Double sellPrice) {
-        double totalReturns = ( sellPrice - buyPrice ) / buyPrice;
-        LocalDate startDate = trade.getPurchaseDate();
-        /*
-        String ed = endDate.toString();
-        int sy = Integer.parseInt(sd.substring(0,sd.indexOf("-")));
-        int ey = Integer.parseInt(ed.substring(0,ed.indexOf("-")));
-        int sm=Integer.parseInt(sd.substring(sd.indexOf("-") , 
-                sd.indexOf("-", sd.indexOf("-") + 1)));
-        int em=Integer.parseInt(ed.substring(ed.indexOf("-") , 
-                ed.indexOf("-", ed.indexOf("-") + 1)));
-        int sdate=Integer.parseInt(sd.substring(sd.lastIndexOf("-")+1, sd.length()));
-        int edate=Integer.parseInt(ed.substring(ed.lastIndexOf("-")+1, ed.length()));
-        
-        //System.out.println(sdate+" "+sm+" "+sy);
-        //System.out.println(edate+" "+em+" "+ey);
-        */
+    double totalReturns = (sellPrice - buyPrice) / buyPrice;
+    LocalDate startDate = trade.getPurchaseDate();
+    
+    long days = ChronoUnit.DAYS.between(startDate, endDate);
+    if (days <= 0) {
+      days = 1;
+    }
+    double tny = (double)365 / days;
+    double annualizedReturns = (double)Math.pow((1 + totalReturns), tny) - 1;
 
-        //long diff = startDate.getTime() - endDate.getTime();
-        //int days = (ey-sy)*365 + (em-sm)*30 + (edate-sdate);
-        //int yearsDay = - 
-
-        long days = ChronoUnit.DAYS.between(startDate, endDate);
-        if (days <= 0)
-        {
-          days = 1;
-        }
-        double tNY = (double)365 / days;
-        double annualizedReturns = (double)Math.pow((1 + totalReturns) ,tNY) - 1;
-
-      return new AnnualizedReturn(trade.getSymbol(), annualizedReturns, totalReturns);
+    return new AnnualizedReturn(trade.getSymbol(), annualizedReturns, totalReturns);
   }
 
 
