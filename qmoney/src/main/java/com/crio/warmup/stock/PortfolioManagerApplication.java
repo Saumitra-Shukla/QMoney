@@ -215,6 +215,20 @@ public class PortfolioManagerApplication {
       ar.add(calculateAnnualizedReturns(LocalDate.parse(args[1]), 
             pt[i], buyValue.get(i), sellValue.get(i)));
     }
+
+    for (int i = 0; i < ar.size() - 1; i++) {
+      for (int j = 0; j < ar.size() - 1 - i; j++) {
+        if (ar.get(j).getAnnualizedReturn() <= ar.get(j + 1).getAnnualizedReturn()) {
+          AnnualizedReturn dswp = ar.get(j);
+          ar.set(j,ar.get(j + 1));
+          ar.set(j + 1,dswp);
+        }
+      }
+    }
+
+
+
+
     return ar;
   }
 
@@ -235,8 +249,10 @@ public class PortfolioManagerApplication {
     LocalDate startDate = trade.getPurchaseDate();
     
     long days = ChronoUnit.DAYS.between(startDate, endDate);
-    if (days <= 0) {
+    if (days == 0) {
       days = 1;
+    } else if (days < 0) {
+      days = 0; 
     }
     double tny = (double)365 / days;
     double annualizedReturns = (double)Math.pow((1 + totalReturns), tny) - 1;
