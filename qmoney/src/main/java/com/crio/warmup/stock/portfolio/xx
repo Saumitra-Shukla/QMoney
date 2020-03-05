@@ -1,0 +1,33 @@
+ List<AnnualizedReturn> annRetArr = new ArrayList<AnnualizedReturn>();
+    for(int i = 0; i < portfolioTrades.size(); i++) {
+      PortfolioTrade trade = portfolioTrades.get(i);
+
+      String stockname = trade.getSymbol();
+      String startdatee = trade.getPurchaseDate().toString();
+      String url = "https://api.tiingo.com/tiingo/daily/" + stockname + "/prices?startDate=";
+      url = url + startdatee + "&endDate=" + date;
+      url = url + "&token=3363b903ca0b6da429d1fa9209f385716d4a6359";
+      ObjectMapper mapper = new ObjectMapper();
+      mapper.registerModule(new JavaTimeModule());
+      RestTemplate restTemplate = new RestTemplate();
+      String result = restTemplate.getForObject(url, String.class);
+      List<TiingoCandle> collec = mapper.readValue(result,
+              new TypeReference<ArrayList<TiingoCandle>>() {
+            });
+
+      double buyPrice = collec.get(0).getOpen();
+      double sellPrice = collec.get(collec.size() - 1).getClose();
+      double totalReturns = (sellPrice - buyPrice) / buyPrice;
+      LocalDate startDate = trade.getPurchaseDate();
+      
+      long days = ChronoUnit.DAYS.between(startDate, endDate);
+      if (days == 0) {
+        days = 1;
+      } else if (days < 0) {
+        days = 0; 
+      }
+      double tny = (double)365 / days;
+      double annualizedReturns = (double)Math.pow((1 + totalReturns), tny) - 1;
+  
+      annRetArr.set(i,new AnnualizedReturn(trade.getSymbol(), annualizedReturns, totalReturns));
+    }
